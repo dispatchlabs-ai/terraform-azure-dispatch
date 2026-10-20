@@ -1,5 +1,5 @@
 variable "name" {
-  description = "Installation and AKS cluster name. Named infrastructure must retain its identity during adoption."
+  description = "Installation and AKS cluster name."
   type        = string
   validation {
     condition     = can(regex("^[a-z][a-z0-9-]{1,38}[a-z0-9]$", var.name))
@@ -98,7 +98,7 @@ variable "postgres" {
 }
 
 variable "postgres_administrator_password" {
-  description = "Write-only creation credential. Leave null when adopting an existing server; never reads or rotates the retained password."
+  description = "Ephemeral administrator password for creation or explicit rotation. Null leaves the credential unmanaged."
   type        = string
   default     = null
   sensitive   = true
@@ -106,13 +106,13 @@ variable "postgres_administrator_password" {
 }
 
 variable "postgres_password_version" {
-  description = "Explicit write-only password change trigger; null preserves the imported credential."
+  description = "Explicit write-only password change trigger. Supply with the password and increment only for rotation; null leaves the credential unmanaged."
   type        = number
   default     = null
 }
 
 variable "retained_postgres_firewall_rules" {
-  description = "Existing firewall rules retained during adoption. Public server access remains disabled; do not add rules as a private-access substitute."
+  description = "Optional named PostgreSQL firewall rules. Public server access remains disabled; these rules do not enable connectivity."
   type        = map(object({ start_ip = string, end_ip = string }))
   default     = {}
 }

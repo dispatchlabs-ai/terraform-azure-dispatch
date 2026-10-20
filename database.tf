@@ -32,8 +32,7 @@ resource "azurerm_postgresql_flexible_server" "this" {
   }
 }
 
-# These inherited settings are part of the worker isolation contract. Explicitly
-# adopt the safe defaults as well as the four operator-changed values.
+# These inherited settings are part of the worker isolation contract.
 locals {
   postgres_parameters = {
     log_statement                      = "none"

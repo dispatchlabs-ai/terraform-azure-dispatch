@@ -19,8 +19,7 @@ resource "azurerm_role_assignment" "control_plane_network" {
   principal_type       = "ServicePrincipal"
 }
 
-# The retained CLI bootstrap assigned this additional subnet scope. Preserve it
-# during adoption; changing grants is a separate reviewed platform operation.
+# Keep node-subnet authority explicit alongside the VNet-scoped platform grant.
 resource "azurerm_role_assignment" "control_plane_nodes" {
   scope                = azurerm_subnet.this["nodes"].id
   role_definition_name = "Network Contributor"
@@ -151,7 +150,7 @@ resource "azapi_resource" "cluster" {
 
   lifecycle {
     prevent_destroy = true
-    # ARM imports these fields into body, but their lifecycle belongs elsewhere:
+    # These ARM fields have lifecycle owners outside this module:
     # AKS owns its API private-link descriptor, and the operator owns pool
     # start/stop actions. Terraform must not restart an intentionally stopped
     # pool. All networking/security/version/capacity settings remain compared.
@@ -162,9 +161,8 @@ resource "azapi_resource" "cluster" {
   }
 }
 
-# A metadata-only GET projects public connection fields. Keeping projection on a
-# data source avoids changing the managed resource merely to populate outputs
-# after import; no listClusterAdminCredentials action is issued.
+# A metadata-only GET projects public connection fields independently of the
+# managed resource; no listClusterAdminCredentials action is issued.
 data "azapi_resource" "cluster_metadata" {
   type                   = "Microsoft.ContainerService/managedClusters@2025-10-01"
   resource_id            = azapi_resource.cluster.id
