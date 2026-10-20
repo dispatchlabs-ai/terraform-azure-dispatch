@@ -158,3 +158,22 @@ resource "azurerm_role_assignment" "gateway" {
   principal_id         = module.foundation.identities.control_plane_principal_id
   principal_type       = "ServicePrincipal"
 }
+
+# The cloud controller lists the gateway's resource group even when the Service
+# names one public IP. Keep group discovery read-only and writes scoped above.
+resource "azurerm_role_definition" "gateway_discovery" {
+  name              = "${var.name} gateway discovery"
+  scope             = module.foundation.resource_group.id
+  description       = "Read public IP metadata for the Dispatch gateway."
+  assignable_scopes = [module.foundation.resource_group.id]
+  permissions {
+    actions = ["Microsoft.Network/publicIPAddresses/read"]
+  }
+}
+
+resource "azurerm_role_assignment" "gateway_discovery" {
+  scope              = module.foundation.resource_group.id
+  role_definition_id = azurerm_role_definition.gateway_discovery.role_definition_resource_id
+  principal_id       = module.foundation.identities.control_plane_principal_id
+  principal_type     = "ServicePrincipal"
+}

@@ -73,7 +73,12 @@ import/adoption procedure.
    projected token/environment. Launcher and workers receive neither this
    identity nor cloud metadata access.
 6. Configure the gateway Service with output `gateway.address_name` and
-   `gateway.resource_group`; its IP has a scoped AKS control-plane grant.
+   `gateway.resource_group`. The AKS control-plane identity has Network
+   Contributor on that IP and only `Microsoft.Network/publicIPAddresses/read`
+   on its resource group. The [Azure cloud controller fills its public-IP cache
+   by listing the group](https://github.com/kubernetes-sigs/cloud-provider-azure/blob/v1.36.0/pkg/provider/azure_publicip_repo.go#L103),
+   even when the Service names one IP. The group grant adds discovery without
+   granting network writes or storage access across the group.
    Supply your public application DNS/TLS and backend callback certificates.
    Initialize the stores and verify allowed/denied traffic from real worker
    Pods before activation.
