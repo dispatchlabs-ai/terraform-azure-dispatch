@@ -53,6 +53,7 @@ resource "azapi_resource" "cluster" {
     kind = "Base"
     sku  = { name = "Base", tier = "Free" }
     properties = {
+      privateLinkResources    = []
       kubernetesVersion       = local.cluster.version
       dnsPrefix               = local.cluster.dns_prefix
       nodeResourceGroup       = local.cluster.node_resource_group
@@ -90,6 +91,7 @@ resource "azapi_resource" "cluster" {
         ssh           = { publicKeys = [{ keyData = local.cluster.ssh_public_key }] }
       }
       agentPoolProfiles = [{
+        powerState             = { code = "Running" }
         name                   = local.cluster.node_pool_name
         count                  = local.cluster.node_count
         vmSize                 = local.cluster.node_vm_size
@@ -154,6 +156,8 @@ resource "azapi_resource" "cluster" {
     # AKS owns its API private-link descriptor, and the operator owns pool
     # start/stop actions. Terraform must not restart an intentionally stopped
     # pool. All networking/security/version/capacity settings remain compared.
+    # Initial values above give these paths a place in the typed body so
+    # ignore_changes can preserve their observed values during updates.
     ignore_changes = [
       body.properties.privateLinkResources,
       body.properties.agentPoolProfiles[0].powerState,
