@@ -68,7 +68,8 @@ resource "azapi_resource" "artifacts" {
   lifecycle { prevent_destroy = true }
 }
 
-resource "azapi_resource" "blob_service" {
+# Azure creates this singleton with the account; manage its settings in place.
+resource "azapi_update_resource" "blob_service" {
   type      = "Microsoft.Storage/storageAccounts/blobServices@2025-01-01"
   name      = "default"
   parent_id = azapi_resource.artifacts.id
@@ -84,7 +85,7 @@ resource "azapi_resource" "blob_service" {
 resource "azapi_resource" "container" {
   type      = "Microsoft.Storage/storageAccounts/blobServices/containers@2025-01-01"
   name      = var.artifacts_container
-  parent_id = azapi_resource.blob_service.id
+  parent_id = azapi_update_resource.blob_service.id
   body      = { properties = { publicAccess = "None" } }
   lifecycle { prevent_destroy = true }
 }
