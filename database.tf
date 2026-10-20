@@ -76,6 +76,10 @@ resource "azurerm_private_dns_zone_virtual_network_link" "postgres" {
 }
 
 resource "azurerm_private_endpoint" "postgres" {
+  # Private Link also updates the server; finish its settings first to avoid
+  # Azure rejecting concurrent operations with ServerIsBusy.
+  depends_on = [azurerm_postgresql_flexible_server_configuration.runtime]
+
   name                = local.postgres.private_endpoint_name
   resource_group_name = azurerm_resource_group.this.name
   location            = var.location
