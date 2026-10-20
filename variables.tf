@@ -8,8 +8,9 @@ variable "name" {
 }
 
 variable "resource_group" {
-  description = "Dedicated resource group name and metadata location; its location may differ from the deployed resources."
-  type        = object({ name = string, location = string })
+  description = "Dedicated resource group overrides. Defaults to the installation name and resource location; existing callers retain their explicit names."
+  type        = object({ name = optional(string), location = optional(string) })
+  default     = {}
 }
 
 variable "location" {
@@ -20,7 +21,7 @@ variable "location" {
 variable "network" {
   description = "Dedicated VNet and explicit node/operator/private-endpoint subnet address spaces."
   type = object({
-    name           = string
+    name           = optional(string)
     address_space  = list(string)
     subnets        = map(list(string))
     pod_cidr       = string
@@ -48,17 +49,17 @@ variable "cluster" {
   description = "Reviewed AKS version and node capacity. Platform upgrades are independent of application releases."
   type = object({
     version                 = string
-    dns_prefix              = string
-    node_resource_group     = string
-    node_pool_name          = string
-    node_vm_size            = string
-    node_count              = number
-    node_os_disk_size_gb    = number
-    node_os_sku             = string
-    max_pods                = number
-    max_surge               = string
-    node_os_upgrade_channel = string
-    admin_username          = string
+    dns_prefix              = optional(string)
+    node_resource_group     = optional(string)
+    node_pool_name          = optional(string, "system")
+    node_vm_size            = optional(string, "Standard_D2s_v5")
+    node_count              = optional(number, 2)
+    node_os_disk_size_gb    = optional(number, 64)
+    node_os_sku             = optional(string, "Ubuntu")
+    max_pods                = optional(number, 110)
+    max_surge               = optional(string, "1")
+    node_os_upgrade_channel = optional(string, "None")
+    admin_username          = optional(string, "dispatchadmin")
     ssh_public_key          = string
   })
   validation {
@@ -75,18 +76,19 @@ variable "cluster" {
 variable "postgres" {
   description = "Private PostgreSQL Flexible Server. Database contents, scoped roles and passwords remain explicit operator-owned state."
   type = object({
-    name                  = string
-    version               = string
-    sku_name              = string
-    storage_mb            = number
-    storage_tier          = string
-    zone                  = string
-    administrator_login   = string
-    backup_retention_days = number
-    private_endpoint_name = string
-    dns_zone_name         = string
-    dns_link_name         = string
+    name                  = optional(string)
+    version               = optional(string, "17")
+    sku_name              = optional(string, "GP_Standard_D2ds_v5")
+    storage_mb            = optional(number, 32768)
+    storage_tier          = optional(string, "P4")
+    zone                  = optional(string, "1")
+    administrator_login   = optional(string, "dispatch_operator")
+    backup_retention_days = optional(number, 7)
+    private_endpoint_name = optional(string)
+    dns_zone_name         = optional(string, "privatelink.postgres.database.azure.com")
+    dns_link_name         = optional(string)
   })
+  default = {}
   validation {
     condition = (
       var.postgres.version == "17" &&

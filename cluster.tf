@@ -53,9 +53,9 @@ resource "azapi_resource" "cluster" {
     kind = "Base"
     sku  = { name = "Base", tier = "Free" }
     properties = {
-      kubernetesVersion       = var.cluster.version
-      dnsPrefix               = var.cluster.dns_prefix
-      nodeResourceGroup       = var.cluster.node_resource_group
+      kubernetesVersion       = local.cluster.version
+      dnsPrefix               = local.cluster.dns_prefix
+      nodeResourceGroup       = local.cluster.node_resource_group
       enableRBAC              = true
       disableLocalAccounts    = false
       supportPlan             = "KubernetesOfficial"
@@ -63,7 +63,7 @@ resource "azapi_resource" "cluster" {
       metricsProfile          = { costAnalysis = { enabled = false } }
       servicePrincipalProfile = { clientId = "msi" }
       windowsProfile = {
-        adminUsername  = var.cluster.admin_username
+        adminUsername  = local.cluster.admin_username
         enableCSIProxy = true
       }
       workloadAutoScalerProfile = {}
@@ -73,7 +73,7 @@ resource "azapi_resource" "cluster" {
         privateDNSZone                 = "system"
       }
       autoUpgradeProfile = {
-        nodeOSUpgradeChannel = var.cluster.node_os_upgrade_channel
+        nodeOSUpgradeChannel = local.cluster.node_os_upgrade_channel
       }
       nodeProvisioningProfile = { mode = "Manual" }
       oidcIssuerProfile       = { enabled = true }
@@ -86,22 +86,22 @@ resource "azapi_resource" "cluster" {
         }
       }
       linuxProfile = {
-        adminUsername = var.cluster.admin_username
-        ssh           = { publicKeys = [{ keyData = var.cluster.ssh_public_key }] }
+        adminUsername = local.cluster.admin_username
+        ssh           = { publicKeys = [{ keyData = local.cluster.ssh_public_key }] }
       }
       agentPoolProfiles = [{
-        name                   = var.cluster.node_pool_name
-        count                  = var.cluster.node_count
-        vmSize                 = var.cluster.node_vm_size
-        osDiskSizeGB           = var.cluster.node_os_disk_size_gb
+        name                   = local.cluster.node_pool_name
+        count                  = local.cluster.node_count
+        vmSize                 = local.cluster.node_vm_size
+        osDiskSizeGB           = local.cluster.node_os_disk_size_gb
         osDiskType             = "Managed"
-        osSKU                  = var.cluster.node_os_sku
+        osSKU                  = local.cluster.node_os_sku
         osType                 = "Linux"
         kubeletDiskType        = "OS"
         mode                   = "System"
         type                   = "VirtualMachineScaleSets"
-        maxPods                = var.cluster.max_pods
-        orchestratorVersion    = var.cluster.version
+        maxPods                = local.cluster.max_pods
+        orchestratorVersion    = local.cluster.version
         vnetSubnetID           = azurerm_subnet.this["nodes"].id
         enableAutoScaling      = false
         enableNodePublicIP     = false
@@ -114,7 +114,7 @@ resource "azapi_resource" "cluster" {
           sshAccess        = "LocalUser"
         }
         scaleDownMode   = "Delete"
-        upgradeSettings = { maxSurge = var.cluster.max_surge, maxUnavailable = "0" }
+        upgradeSettings = { maxSurge = local.cluster.max_surge, maxUnavailable = "0" }
       }]
       networkProfile = {
         networkPlugin     = "azure"

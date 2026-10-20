@@ -1,6 +1,6 @@
 resource "azurerm_resource_group" "this" {
-  name     = var.resource_group.name
-  location = var.resource_group.location
+  name     = local.resource_group.name
+  location = local.resource_group.location
   tags     = var.tags
 
   lifecycle {
@@ -9,7 +9,7 @@ resource "azurerm_resource_group" "this" {
 }
 
 resource "azurerm_virtual_network" "this" {
-  name                = var.network.name
+  name                = local.network_name
   location            = var.location
   resource_group_name = azurerm_resource_group.this.name
   address_space       = var.network.address_space

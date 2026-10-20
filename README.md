@@ -29,6 +29,12 @@ Kubernetes/Helm provider or dependency on a particular caller repository.
 
 ## Requirements and consumption
 
+Start with [examples/complete](examples/complete) for a typed root configuration
+that creates the foundation, versioned Blob storage, backend Workload Identity,
+ACR/pull permissions and a gateway IP. Its documented operator/platform steps
+complete the application installation without storing credentials in Terraform.
+It works from a reviewed checkout before registry publication.
+
 Use Terraform or OpenTofu **1.11 or later, below 2.0**. Both support the ephemeral
 inputs and write-only arguments used for the database password.
 See [Terraform's write-only contract](https://developer.hashicorp.com/terraform/language/manage-sensitive-data/write-only)
@@ -60,9 +66,18 @@ terraform {
 variable "subscription_id" { type = string }
 variable "tenant_id" { type = string }
 variable "location" { type = string }
-variable "network" {}
-variable "cluster" {}
-variable "postgres" {}
+variable "network" {
+  type = object({
+    address_space  = list(string)
+    subnets        = map(list(string))
+    pod_cidr       = string
+    service_cidr   = string
+    dns_service_ip = string
+  })
+}
+variable "cluster" {
+  type = object({ version = string, ssh_public_key = string })
+}
 variable "postgres_password_version" { type = number }
 variable "postgres_administrator_password" {
   type      = string
@@ -92,7 +107,6 @@ module "dispatch" {
   location       = var.location
   network        = var.network
   cluster        = var.cluster
-  postgres       = var.postgres
 
   postgres_administrator_password = var.postgres_administrator_password
   postgres_password_version       = var.postgres_password_version
@@ -111,16 +125,31 @@ Operator access to the private API and database must be arranged separately.
 
 ## Inputs and outputs
 
-Required inputs are `name`, `resource_group`, `location`, `network`, `cluster`
-and `postgres`. `tags` defaults to an empty map.
+Required inputs are `name`, `location`, `network` and `cluster`. Creation also
+requires the ephemeral database password and its version. `tags`,
+`resource_group` and `postgres` default to empty objects/maps with the defaults
+below.
+
+Names default to the installation name: resource group `name`, VNet
+`name-vnet`, node resource group `resource-group-nodes`, PostgreSQL and its
+private endpoint/DNS link `name-postgres`. Explicit existing name overrides
+continue to win; **keep them when adopting existing infrastructure**.
 
 `network.subnets` must contain `nodes`, `operator` and `private-endpoints`.
 Choose non-overlapping VNet, subnet, Pod and Service ranges. The resource group's
 metadata location and the resource deployment region are separate inputs.
 
-`cluster` selects a fixed system pool with an explicit Kubernetes patch, VM/OS
-settings, maximum Pods, surge allowance and node-image maintenance policy.
-`postgres` selects PostgreSQL 17, storage/capacity, zone and 7–35 days of backups.
+`cluster` requires a supported Kubernetes patch and public SSH key. Defaults
+are two `Standard_D2s_v5` nodes, a `system` pool, Ubuntu, 64 GiB OS disks, 110 Pods
+per node, one surge node and `dispatchadmin` as node administrator. Automatic
+node OS upgrades default to `None`; the operator must schedule OS/Kubernetes
+patching after application drain. Existing explicit upgrade channels are
+unchanged. All defaults can be overridden through the typed object.
+
+`postgres` defaults to PostgreSQL 17, `GP_Standard_D2ds_v5`, 32 GiB/P4 storage,
+zone `1`, `dispatch_operator` as administrator and seven days of backups.
+Select regionally supported SKUs/zones before applying. Its generated server
+name must be globally available; override it when necessary.
 Premium storage IOPS are service-derived rather than separately configured.
 The optional `retained_postgres_firewall_rules` map manages named firewall rules;
 public database access stays disabled, so these rules do not enable connectivity.
@@ -131,7 +160,7 @@ public database access stays disabled, so these rules do not enable connectivity
 | `cluster` | AKS ID, name, private FQDN and OIDC issuer |
 | `identities` | Control-plane and kubelet principal IDs |
 | `subnet_ids` | Subnet IDs keyed by name |
-| `postgres` | PostgreSQL ID, hostname and port |
+| `postgres` | PostgreSQL ID, verified hostname, private IP and port |
 
 Outputs contain no database password or Kubernetes credential. AKS uses an
 explicit AzAPI ARM resource and a metadata-only GET so managing the foundation
@@ -179,3 +208,19 @@ Retain database snapshots, artifact versions and matching encrypted
 keys/credential versions together, and verify restoration separately.
 `prevent_destroy` guards the resource group, cluster and database during
 ordinary plans; it does not replace a backup and recovery procedure.
+
+## Registry releases
+
+This module is not yet published in the Terraform or OpenTofu registry. Use the
+pinned Git source or the local complete example today. Before the first registry
+release, normalize the repository name to `terraform-azurerm-dispatch` and use
+`dispatchlabs-ai/dispatch/azurerm` in both registries. This follows Terraform's
+[main-provider naming requirement](https://developer.hashicorp.com/terraform/registry/modules/publish).
+The current `terraform-azure-dispatch` repository remains the Git source until
+that publishing change is made; no registry address is claimed available here.
+
+Register and release a reviewed semantic version in each registry before using
+that address with `version`. Terraform and OpenTofu resolve a short module address
+against their respective default registries. OpenTofu registration uses its
+[public module submission form](https://github.com/opentofu/registry#adding-providers-modules-or-gpg-keys-to-the-opentofu-registry);
+Terraform registration does not register the module with OpenTofu.

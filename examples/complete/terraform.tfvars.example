@@ -1,0 +1,12 @@
+# Replace subscription, tenant, public key and globally unique names.
+subscription_id    = "00000000-0000-0000-0000-000000000000"
+tenant_id          = "00000000-0000-0000-0000-000000000000"
+name               = "dispatch"
+artifacts_account  = "yourdispatchartifacts"
+registry_name      = "yourdispatchregistry"
+ssh_public_key     = "REPLACE_WITH_YOUR_PUBLIC_SSH_KEY"
+kubernetes_version = "1.36.4"
+# Verify regional availability: az aks get-versions --location eastus2
+# Supply postgres_administrator_password through your secure input mechanism.
+# The password is ephemeral; do not put it in this file or a saved plan.
+postgres_password_version = 1

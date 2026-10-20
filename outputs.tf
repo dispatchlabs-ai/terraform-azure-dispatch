@@ -33,8 +33,9 @@ output "subnet_ids" {
 output "postgres" {
   description = "Private PostgreSQL endpoint; passwords and SQL state are never outputs."
   value = {
-    id   = azurerm_postgresql_flexible_server.this.id
-    host = azurerm_postgresql_flexible_server.this.fqdn
-    port = 5432
+    id         = azurerm_postgresql_flexible_server.this.id
+    host       = azurerm_postgresql_flexible_server.this.fqdn
+    private_ip = azurerm_private_endpoint.postgres.private_service_connection[0].private_ip_address
+    port       = 5432
   }
 }
