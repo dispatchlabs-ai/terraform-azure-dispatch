@@ -53,20 +53,16 @@ resource "azapi_resource" "cluster" {
     kind = "Base"
     sku  = { name = "Base", tier = "Free" }
     properties = {
-      privateLinkResources    = []
-      kubernetesVersion       = local.cluster.version
-      dnsPrefix               = local.cluster.dns_prefix
-      nodeResourceGroup       = local.cluster.node_resource_group
-      enableRBAC              = true
-      disableLocalAccounts    = false
-      supportPlan             = "KubernetesOfficial"
-      bootstrapProfile        = { artifactSource = "Direct" }
-      metricsProfile          = { costAnalysis = { enabled = false } }
-      servicePrincipalProfile = { clientId = "msi" }
-      windowsProfile = {
-        adminUsername  = local.cluster.admin_username
-        enableCSIProxy = true
-      }
+      privateLinkResources      = []
+      kubernetesVersion         = local.cluster.version
+      dnsPrefix                 = local.cluster.dns_prefix
+      nodeResourceGroup         = local.cluster.node_resource_group
+      enableRBAC                = true
+      disableLocalAccounts      = false
+      supportPlan               = "KubernetesOfficial"
+      bootstrapProfile          = { artifactSource = "Direct" }
+      metricsProfile            = { costAnalysis = { enabled = false } }
+      servicePrincipalProfile   = { clientId = "msi" }
       workloadAutoScalerProfile = {}
       apiServerAccessProfile = {
         enablePrivateCluster           = true

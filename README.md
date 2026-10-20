@@ -6,6 +6,9 @@ Dispatch. It follows the foundation boundary of
 [the AWS Kubernetes module](https://github.com/dispatchlabs-ai/terraform-aws-dispatch/tree/experiment/kubernetes):
 cloud infrastructure is provisioned before the platform and application.
 
+The system node pool runs Linux. The optional Windows profile is omitted because
+including it would require a Windows administrator password during creation.
+
 AKS uses Azure CNI Overlay with managed Cilium, private API/DNS, OIDC and workload
 identity. Node count, Kubernetes patch and node-image maintenance policy are
 explicit inputs. PostgreSQL 17 uses Private Link and the inherited logging
