@@ -140,11 +140,17 @@ Choose non-overlapping VNet, subnet, Pod and Service ranges. The resource group'
 metadata location and the resource deployment region are separate inputs.
 
 `cluster` requires a supported Kubernetes patch and public SSH key. Defaults
-are two `Standard_D2s_v5` nodes, a `system` pool, Ubuntu, 64 GiB OS disks, 110 Pods
+are two `Standard_D4s_v5` nodes, a `system` pool, Ubuntu, 64 GiB OS disks, 110 Pods
 per node, one surge node and `dispatchadmin` as node administrator. Automatic
 node OS upgrades default to `None`; the operator must schedule OS/Kubernetes
 patching after application drain. Existing explicit upgrade channels are
 unchanged. All defaults can be overridden through the typed object.
+
+[AKS system pools](https://learn.microsoft.com/en-us/azure/aks/use-system-pools#system-and-user-node-pools)
+require at least two nodes, at least four vCPUs and 4 GB of memory per VM, and
+capacity for at least 30 Pods per node. B-series VMs are unsupported. The module
+validates node and Pod counts; callers must check the selected VM's capabilities,
+regional availability and quota before provisioning, including upgrade surge.
 
 `postgres` defaults to PostgreSQL 17, `GP_Standard_D2ds_v5`, 32 GiB/P4 storage,
 zone `1`, `dispatch_operator` as administrator and seven days of backups.

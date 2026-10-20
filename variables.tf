@@ -52,7 +52,7 @@ variable "cluster" {
     dns_prefix              = optional(string)
     node_resource_group     = optional(string)
     node_pool_name          = optional(string, "system")
-    node_vm_size            = optional(string, "Standard_D2s_v5")
+    node_vm_size            = optional(string, "Standard_D4s_v5")
     node_count              = optional(number, 2)
     node_os_disk_size_gb    = optional(number, 64)
     node_os_sku             = optional(string, "Ubuntu")
@@ -64,12 +64,13 @@ variable "cluster" {
   })
   validation {
     condition = (
-      var.cluster.node_count >= 1 && var.cluster.node_count <= 10 &&
+      var.cluster.node_count >= 2 && var.cluster.node_count <= 10 &&
       floor(var.cluster.node_count) == var.cluster.node_count &&
       can(regex("^1\\.[0-9]+\\.[0-9]+$", var.cluster.version)) &&
-      var.cluster.max_pods >= 10 && var.cluster.max_pods <= 250
+      var.cluster.max_pods >= 30 && var.cluster.max_pods <= 250 &&
+      floor(var.cluster.max_pods) == var.cluster.max_pods
     )
-    error_message = "Pin an explicit Kubernetes patch, 1–10 whole nodes and 10–250 Pods per node."
+    error_message = "Pin an explicit Kubernetes patch, 2–10 whole system nodes and 30–250 whole Pods per node."
   }
 }
 
